@@ -1,0 +1,6 @@
+.pytest_cache
+.DS_Store
+__pycache__
+*.pyc
+.ipynb_checkpoints
+ml_project_dataset/
