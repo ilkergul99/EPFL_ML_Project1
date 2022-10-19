@@ -75,7 +75,7 @@ def compute_gradient(y, tx, w):
         An numpy array of shape (2, ) (same shape as w), containing the gradient of the loss at w.
     """
     error = y - tx.dot(w)
-    return -1/y.shape[0]*tx.T.dot(error)/error.size
+    return -1*tx.T.dot(error)/error.size
 
 def load_data(path):
     #alternative read at once and then split into x and y
