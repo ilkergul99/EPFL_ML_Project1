@@ -1,5 +1,33 @@
 import numpy as np
 
+"""""""""""""""""""""""""""load data start"""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+def load_data(path):
+    #alternative read at once and then split into x and y
+    X = np.genfromtxt(
+    path, delimiter=",", skip_header=1, usecols=range(2,32))
+    Y = np.genfromtxt(
+    path, delimiter=",", skip_header=1, converters={1: lambda x: 0 if b's' in x else 1}, usecols=[1])
+    return X,Y
+
+def standardize(x):
+    """Standardize the original data set."""
+    mean_x = np.mean(x)
+    x = x - mean_x
+    std_x = np.std(x)
+    x = x / std_x
+    return x, mean_x, std_x
+
+#height, weight, gender = load_data()
+#x, mean_x, std_x = standardize(height)
+#y, tx = build_model_data(x, weight)
+x,y = load_data("train.csv")
+x = standardize(x)[0]
+tx = np.c_[np.ones(len(y)), x]
+
+"""""""""""""""""""""""""""load data end"""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 """returns the mean squared error"""
 def compute_mse(e):
     sq = np.square(e)
