@@ -38,8 +38,8 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     """
     Logistic Regression using Gradient Descent
     Args:
-        y: labels
-        tx: features
+        y: Given labels of data = (N,)
+        tx: Features of the data = (N,D)
         initial_w: numpy array of shape=(D, ). The initial guess (or the initialization) for the model parameters
         max_iters: number of steps to run
         gamma: a scalar denoting the total number of iterations 
