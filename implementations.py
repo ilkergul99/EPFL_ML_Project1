@@ -1,23 +1,52 @@
 import numpy as np
+from helper_functions_project1 import *
 
-def sigmoid(t):
-    """apply the sigmoid function on t"""
-    return 1 / (1 + np.exp(-t))
+def least_squares(y, tx):
+    """
+    Least squares regression using normal equations
+    Args:
+        y: Given labels of data = (N,)
+        tx: Features of the data = (N,D)
+    Returns:
+        w: optimized weight vector for the model
+        loss: optimized final loss based on mean squared error
+    """
+    Gram_matrix = tx.T.dot(tx) #shape = (D,D)
+    second_matrix = tx.T.dot(y) #shape = (D,1)
+    w = np.linalg.solve(Gram_matrix, second_matrix) #shape = (D,1)
+    loss = compute_loss_mse(y, tx, w)
+    return w, loss
 
-def negative_likelihood_loss(y, tx, w):
-    """returns loss"""
-    t = np.dot(tx, w)
-    return np.sum(np.log(1 + np.exp(t)) - y * t) 
-
-def negative_likelihood_grad(y, tx, w):
-    """returns grad"""
-    return np.dot(tx.T, sigmoid(np.dot(tx, w)) - y)
-
-def reg_negative_likelihood_grad(y, tx, w, lambda_):
-    """returns grad with regularization term for l2"""
-    return np.dot(tx.T, sigmoid(np.dot(tx, w)) - y) + 2 * lambda_ * w
+def ridge_regression(y, tx, lambda_):
+    """
+    Ridge regression using normal equations
+    Args:
+        y: Given labels of data = (N,)
+        tx: Features of the data = (N,D)
+        lambda_: regularization parameter
+    Returns:
+        w: optimized weight vector for the model
+        loss: optimized final loss based on mean squared error
+    """
+    ridge_matrix = tx.T.dot(tx) + 2 * y.shape[0] * lambda_ * np.identity(tx.shape[1]) #shape = (D,D)
+    second_matrix = tx.T.dot(y) #shape = (D,1)
+    w = np.linalg.solve(ridge_matrix, second_matrix) #shape = (D,1)
+    loss = compute_loss_mse(y, tx, w)
+    return w, loss
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
+    """
+    Logistic Regression using Gradient Descent
+    Args:
+        y: labels
+        tx: features
+        initial_w: numpy array of shape=(D, ). The initial guess (or the initialization) for the model parameters
+        max_iters: number of steps to run
+        gamma: a scalar denoting the total number of iterations 
+    Returns:
+        w: optimized weight vector for the model
+        loss: optimized final loss based on logistic loss
+    """
     w = initial_w.copy()
     
     for _ in range(max_iters):
@@ -29,6 +58,19 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     return w, negative_likelihood_loss(y, tx, w)
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
+    """
+    Regularized Logistic Regression using Gradient Descent 
+    Args:
+        y: Given labels of data = (N,)
+        tx: Features of the data = (N,D)
+        lambda_: regularization parameter
+        initial_w: numpy array of shape=(D, ). The initial guess (or the initialization) for the model parameters
+        max_iters: number of steps to run
+        gamma: a scalar denoting the total number of iterations 
+    Returns:
+        w: optimized weight vector for the model
+        loss: optimized final loss based on logistic loss
+    """
     w = initial_w.copy()
     
     for _ in range(max_iters):
