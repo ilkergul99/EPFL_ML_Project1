@@ -1,6 +1,6 @@
 import numpy as np
 
-def build_k_indices(y, k_fold, seed):
+def build_k_indices(y, k_fold, seed): # TODO: not tested these they probably not work yet, adding as a guide
     """build k indices for k-fold.
     
     Args:
@@ -37,7 +37,7 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
     te_x, te_y = x[k_indices[k]], y[k_indices[k]]
     tr_x, tr_y = x[k_indices[(np.arange(len(k_indices))!=k).reshape(-1)]], y[k_indices[(np.arange(len(k_indices))!=k).reshape(-1)]]
     
-    """tr_x = build_poly(tr_x, degree)
+    tr_x = build_poly(tr_x, degree)
     te_x = build_poly(te_x, degree)
     
     w = ridge_regression(tr_y.reshape(-1), tr_x, lambda_) # TODO: use cross validation for all implementations
@@ -45,4 +45,47 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
     loss_tr = np.sqrt(2 * compute_mse(tr_y.reshape(-1), tr_x, w))
     loss_te = np.sqrt(2 * compute_mse(te_y.reshape(-1), te_x, w))
     return loss_tr, loss_te
+    
+def cross_validation_demo(degree, k_fold, lambdas):
+    """cross validation over regularisation parameter lambda.
+    
+    Args:
+        degree: integer, degree of the polynomial expansion
+        k_fold: integer, the number of folds
+        lambdas: shape = (p, ) where p is the number of values of lambda to test
+    Returns:
+        best_lambda : scalar, value of the best lambda
+        best_rmse : scalar, the associated root mean squared error for the best lambda
     """
+    
+    seed = 12
+    degree = degree
+    k_fold = k_fold
+    lambdas = lambdas
+    # split data in k fold
+    k_indices = build_k_indices(y, k_fold, seed)
+    # define lists to store the loss of training data and test data
+    rmse_tr = []
+    rmse_te = []
+    # ***************************************************
+    # INSERT YOUR CODE HERE
+    # cross validation over lambdas: TODO
+    # ***************************************************
+    for lambda_ in lambdas:
+        trl, tel = 0, 0
+        for k in range(k_fold):
+            trlu, telu = cross_validation(y, x, k_indices, k, lambda_, degree)
+            trl += trlu
+            tel += telu
+        rmse_tr.append(trl/k_fold)
+        rmse_te.append(tel/k_fold)
+
+    cross_validation_visualization(lambdas, rmse_tr, rmse_te)
+    best_lambda = lambdas[np.argmin(rmse_te)]
+    best_rmse = rmse_te[np.argmin(rmse_te)]
+    print("For polynomial expansion up to degree %.f, the choice of lambda which leads to the best test rmse is %.5f with a test rmse of %.3f" % (degree, best_lambda, best_rmse))
+    
+    return best_lambda, best_rmse
+
+
+best_lambda, best_rmse = cross_validation_demo(7, 4, np.logspace(-4, 0, 30))

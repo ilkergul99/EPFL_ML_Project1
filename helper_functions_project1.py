@@ -85,12 +85,12 @@ def load_data(path):
 
 def negative_likelihood_grad(y, tx, w):
     """returns grad"""
-    return np.dot(tx.T, sigmoid(np.dot(tx, w)) - y)
+    return np.dot(tx.T, sigmoid(np.dot(tx, w)) - y) # TODO: might need to add / y.shape[0]
 
 def negative_likelihood_loss(y, tx, w):
     """returns loss"""
     t = np.dot(tx, w)
-    return np.sum(np.log(1 + np.exp(t)) - y * t) 
+    return np.sum(np.log(1 + np.exp(t)) - y * t) # TODO: might need to add / y.shape[0]
 
 def reg_negative_likelihood_grad(y, tx, w, lambda_):
     """returns grad with regularization term for l2"""

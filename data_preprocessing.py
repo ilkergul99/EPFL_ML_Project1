@@ -2,9 +2,9 @@ import numpy as np
 
 def column_standardize(x):
     """Standardize the original data set."""
-    mean_x = np.mean(x)
+    mean_x = np.mean(x, axis=0)
     x = x - mean_x
-    std_x = np.std(x)
+    std_x = np.std(x, axis=0)
     x = x / std_x
     return x, mean_x, std_x
 
@@ -55,7 +55,7 @@ def remove_correlated_cols(tr_x, te_x, tol):
         res_te_x = np.delete(res_te_x, remove_columns, 1)
     return res_tr_x, res_te_x
 
-def build_poly(x, degree):
+def build_poly(x, degree, columns=[]):
     """polynomial basis functions for input data x, for j=0 up to j=degree.
     
     Args:
@@ -64,9 +64,14 @@ def build_poly(x, degree):
         
     Returns:
         poly: numpy array of shape (N,d+1)
-    """    
-    p=np.arange(degree+1)
-    return np.power(np.tile(x.reshape((-1,1)), degree+1), p)
+    """
+    if columns == []:
+        columns = np.arange(x.shape[1])
+    res = [x]
+    p=np.arange(2, degree+1)
+    for cind in columns:
+        res.append(np.power(np.tile(x.T[cind, :].reshape((-1,1)), degree -1), p))
+    return np.concatenate(res, axis=1)
     
 def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.2, degree=1):
     """
@@ -87,8 +92,8 @@ def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.2, degree=1):
     if corr_tol > 0:
         tr_x, te_x = remove_correlated_cols(tr_x, te_x, corr_tol)
     
-    tr_x = column_standardize(tr_x)
-    te_x = column_standardize(te_x)
+    tr_x = column_standardize(tr_x)[0]
+    te_x = column_standardize(te_x)[0]
     
     if degree > 1:
         tr_x = build_poly(tr_x, degree)
