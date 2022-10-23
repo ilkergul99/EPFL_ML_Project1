@@ -64,13 +64,11 @@ def compute_stoch_gradient(y, tx, w):
     return g,e
 
 def compute_gradient(y, tx, w):
-    """Computes the gradient at w.
-        
+    """Computes the gradient at w.  
     Args:
         y: Given labels of data = (N,)
         tx: Features of the data = (N,D)
         w: numpy array of shape=(D,). The vector of model parameters.
-        
     Returns:
         An numpy array of shape (2, ) (same shape as w), containing the gradient of the loss at w.
     """
