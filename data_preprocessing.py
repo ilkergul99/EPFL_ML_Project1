@@ -98,4 +98,6 @@ def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.2, degree=1):
     if degree > 1:
         tr_x = build_poly(tr_x, degree)
         te_x = build_poly(te_x, degree)
+    tr_x = np.c_[np.ones(tr_x.shape[0]), tr_x]
+    te_x = np.c_[np.ones(te_x.shape[0]), te_x]
     return tr_x, te_x

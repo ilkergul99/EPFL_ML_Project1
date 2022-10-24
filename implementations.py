@@ -5,10 +5,10 @@ from helper_functions_project1 import *
 #height, weight, gender = load_data()
 #x, mean_x, std_x = standardize(height)
 #y, tx = build_model_data(x, weight)
-x,y = load_data("train.csv")
+"""x,y = load_data("train.csv")
 x = standardize(x)[0]
 tx = np.c_[np.ones(len(y)), x]
-
+"""
 """""""""""""""""""""""""""load data end"""""""""""""""""""""""""""""""
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
