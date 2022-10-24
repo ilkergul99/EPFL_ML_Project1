@@ -3,8 +3,10 @@ import numpy as np
 def column_standardize(x):
     """Standardize the original data set."""
     mean_x = np.mean(x, axis=0)
+    
     x = x - mean_x
     std_x = np.std(x, axis=0)
+    
     x = x / std_x
     return x, mean_x, std_x
 
@@ -20,12 +22,12 @@ def handle_missing_and_outliers(x, outlier_coef):
     """
     res_x = x.copy()
     mean_of_non_null = np.zeros((x.shape[1]))
-    for i in range(30):
+    for i in range(x.shape[1]):
         mean_of_non_null[i] = np.mean(res_x[np.where(res_x[:, i] != -999), i])
         res_x[np.where(x[:, i] == -999), i] = mean_of_non_null[i]
         
     if outlier_coef != -1:
-        for i in range(30):
+        for i in range(x.shape[1]):
             std = np.std(res_x[:, i])
             lower, upper = mean_of_non_null[i] - outlier_coef * std, mean_of_non_null[i] + outlier_coef * std
             res_x[np.where(res_x[:, i] < lower), i] = lower
@@ -73,7 +75,7 @@ def build_poly(x, degree, columns=[]):
         res.append(np.power(np.tile(x.T[cind, :].reshape((-1,1)), degree -1), p))
     return np.concatenate(res, axis=1)
     
-def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.2, degree=1):
+def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.5, degree=1):
     """
     applies the preproceesing functions in this file 
     Args:
@@ -86,6 +88,13 @@ def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.2, degree=1):
         res_tr_x: the resulting trainging data features
         res_te_x: the resulting testing data features
     """
+    unnecessary_columns = []
+    for i in range(tr_x.shape[1]):
+        if len(np.unique(tr_x[:,i])) == 1:
+            unnecessary_columns.append(i)
+    print("unnecessary columns are: ", unnecessary_columns)
+    tr_x = np.delete(tr_x, unnecessary_columns, axis=1)
+    te_x = np.delete(te_x, unnecessary_columns, axis=1)
     tr_x = handle_missing_and_outliers(tr_x, outlier_coef)
     te_x = handle_missing_and_outliers(te_x, outlier_coef)
     

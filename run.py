@@ -43,7 +43,10 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
     tr_x, tr_y = x[k_indices[(np.arange(len(k_indices))!=k)].reshape(-1)], y[k_indices[(np.arange(len(k_indices))!=k)].reshape(-1)]
     tr_x, te_x = apply_preprocessing(tr_x, te_x, degree=degree)
     
-    w, _ = ridge_regression(tr_y.reshape(-1), tr_x, lambda_) # TODO: use cross validation for all implementations
+    w, _ = ridge_regression(tr_y.reshape(-1), tr_x, lambda_)
+    #w, _ = logistic_regression(tr_y.reshape(-1), tr_x, np.zeros([tr_x.shape[1],1]), 10000, 0.001) # TODO: use cross validation for all implementations
+    #w, _ = least_squares_SGD(tr_y.reshape(-1), tr_x, np.zeros([tr_x.shape[1],1]), 1, 10, 0.0001)
+    #w, _ = least_squares(tr_y.reshape(-1), tr_x)
     preds_tr = tr_x.dot(w)
     preds_tr[preds_tr < 0] = -1
     preds_tr[preds_tr >= 0] = 1

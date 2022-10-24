@@ -30,7 +30,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
         losses.append(loss)
         print("GD iter. {bi}/{ti}: loss={l}".format(
               bi=n_iter, ti=max_iters - 1, l=loss))  
-    return losses, ws
+    return ws[-1], losses[-1]
 
 """performs stochastic gradient descent"""
 def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
@@ -47,7 +47,7 @@ def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
             
         print("SGD iter. {bi}/{ti}: loss={l}".format(
                 bi=n_iter, ti=max_iters - 1, l=loss))        
-    return losses, ws
+    return ws[-1], losses[-1]
 
 """performs least squares using normal equations"""
 def least_squares(y, tx):
@@ -100,11 +100,13 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     """
     w = initial_w.copy()
     
-    for _ in range(max_iters):
+    for i in range(max_iters):
         # compute the gradient
         grad = negative_likelihood_grad(y, tx, w)
         # update weights
         w = w - gamma * grad
+        if i % 100 == 0:
+            print(i, ", " ,negative_likelihood_loss(y, tx, w))
         
     return w, negative_likelihood_loss(y, tx, w)
 
