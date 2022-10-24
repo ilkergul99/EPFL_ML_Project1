@@ -1,4 +1,5 @@
 import numpy as np
+import csv
 
 """the copy of the function in helpers.py, should we change this?"""
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
