@@ -1,4 +1,8 @@
 import numpy as np
+import time
+from data_preprocessing import *
+from helper_functions_project1 import *
+from implementations import *
 
 def build_k_indices(y, k_fold, seed): # TODO: not tested these they probably not work yet, adding as a guide
     """build k indices for k-fold.
@@ -31,61 +35,71 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
 
     Returns:
         train and test root mean square errors rmse = sqrt(2 mse)
+        train and test mean accuracies(not categorical overall)
 
     """
 
     te_x, te_y = x[k_indices[k]], y[k_indices[k]]
-    tr_x, tr_y = x[k_indices[(np.arange(len(k_indices))!=k).reshape(-1)]], y[k_indices[(np.arange(len(k_indices))!=k).reshape(-1)]]
+    tr_x, tr_y = x[k_indices[(np.arange(len(k_indices))!=k)].reshape(-1)], y[k_indices[(np.arange(len(k_indices))!=k)].reshape(-1)]
+    tr_x, te_x = apply_preprocessing(tr_x, te_x, degree=degree)
     
-    tr_x = build_poly(tr_x, degree)
-    te_x = build_poly(te_x, degree)
+    w, _ = ridge_regression(tr_y.reshape(-1), tr_x, lambda_) # TODO: use cross validation for all implementations
+    preds_tr = tr_x.dot(w)
+    preds_tr[preds_tr < 0] = -1
+    preds_tr[preds_tr >= 0] = 1
+    loss_tr = np.sqrt(2 * compute_mse(tr_y.reshape(-1) - preds_tr))
+    acc_tr = np.sum(preds_tr == tr_y) / len(tr_y)
     
-    w = ridge_regression(tr_y.reshape(-1), tr_x, lambda_) # TODO: use cross validation for all implementations
+    preds_te = te_x.dot(w)
+    preds_te[preds_te < 0] = -1
+    preds_te[preds_te >= 0] = 1
+    loss_te = np.sqrt(2 * compute_mse(te_y.reshape(-1) - preds_te))
+    acc_te = np.sum(preds_te == te_y) / len(te_y)
+    return loss_tr, loss_te, acc_tr, acc_te
     
-    loss_tr = np.sqrt(2 * compute_mse(tr_y.reshape(-1), tr_x, w))
-    loss_te = np.sqrt(2 * compute_mse(te_y.reshape(-1), te_x, w))
-    return loss_tr, loss_te
-    
-def cross_validation_demo(degree, k_fold, lambdas):
-    """cross validation over regularisation parameter lambda.
+def best_degree_selection(train_x, train_y, degrees, k_fold, lambdas, seed = 1):
+    """cross validation over regularisation parameter lambda and degree.
     
     Args:
-        degree: integer, degree of the polynomial expansion
+        degrees: shape = (d,), where d is the number of degrees to test 
         k_fold: integer, the number of folds
         lambdas: shape = (p, ) where p is the number of values of lambda to test
     Returns:
-        best_lambda : scalar, value of the best lambda
-        best_rmse : scalar, the associated root mean squared error for the best lambda
+        best_params : parameters that result in the best rmse
+        best_rmse : value of the rmse for the couple (best_degree, best_lambda)
+        
+    >>> best_degree_selection(np.arange(2,11), 4, np.logspace(-4, 0, 30))
+    (7, 0.004520353656360241, 0.28957280566456634)
     """
     
-    seed = 12
-    degree = degree
-    k_fold = k_fold
-    lambdas = lambdas
     # split data in k fold
-    k_indices = build_k_indices(y, k_fold, seed)
-    # define lists to store the loss of training data and test data
+    k_indices = build_k_indices(train_y, k_fold, seed)
+    starting_time = time.time()
     rmse_tr = []
     rmse_te = []
-    # ***************************************************
-    # INSERT YOUR CODE HERE
-    # cross validation over lambdas: TODO
-    # ***************************************************
-    for lambda_ in lambdas:
-        trl, tel = 0, 0
-        for k in range(k_fold):
-            trlu, telu = cross_validation(y, x, k_indices, k, lambda_, degree)
-            trl += trlu
-            tel += telu
-        rmse_tr.append(trl/k_fold)
-        rmse_te.append(tel/k_fold)
+    acc_tr = []
+    acc_te = []
+    pairs = []
+    for degree in degrees:
+        for lambda_ in lambdas:
+            trl, tel, atr, ate = 0, 0, 0, 0
+            for k in range(k_fold):
+                trlu, telu, atru, ateu = cross_validation(train_y, train_x, k_indices, k, lambda_, degree)
+                trl += trlu
+                tel += telu
+                atr += atru
+                ate += ateu
+            rmse_tr.append(trl/k_fold)
+            rmse_te.append(tel/k_fold)
+            acc_tr.append(atr/k_fold)
+            acc_te.append(ate/k_fold)
+            pairs.append((lambda_, degree))
+            print("For lambda: {} and degree:{}, rmse_tr:{}, rmse_te:{}, acc_tr:{}, acc_te:{}".format(lambda_, degree, rmse_tr[-1], rmse_te[-1], acc_tr[-1], acc_te[-1]))
 
-    cross_validation_visualization(lambdas, rmse_tr, rmse_te)
-    best_lambda = lambdas[np.argmin(rmse_te)]
+    best_params = pairs[np.argmin(rmse_te)]
     best_rmse = rmse_te[np.argmin(rmse_te)]
-    print("For polynomial expansion up to degree %.f, the choice of lambda which leads to the best test rmse is %.5f with a test rmse of %.3f" % (degree, best_lambda, best_rmse))
-    
-    return best_lambda, best_rmse
+    acc_for_best_rmse = acc_te[np.argmin(rmse_te)]
+    print("overall time passed: {}".format(time.time()-starting_time))
+    return best_params, best_rmse, acc_for_best_rmse
 
 
-best_lambda, best_rmse = cross_validation_demo(7, 4, np.logspace(-4, 0, 30))
