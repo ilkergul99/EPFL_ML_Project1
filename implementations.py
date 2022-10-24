@@ -1,16 +1,5 @@
 import numpy as np
 from helper_functions_project1 import *
-"""""""""""""""""""""""""""load data start"""""""""""""""""""""""""""""""
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-#height, weight, gender = load_data()
-#x, mean_x, std_x = standardize(height)
-#y, tx = build_model_data(x, weight)
-"""x,y = load_data("train.csv")
-x = standardize(x)[0]
-tx = np.c_[np.ones(len(y)), x]
-"""
-"""""""""""""""""""""""""""load data end"""""""""""""""""""""""""""""""
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 """performs gradient descent"""
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
@@ -60,6 +49,7 @@ def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
                 bi=n_iter, ti=max_iters - 1, l=loss))        
     return losses, ws
 
+"""performs least squares using normal equations"""
 def least_squares(y, tx):
     """
     Least squares regression using normal equations
@@ -76,6 +66,7 @@ def least_squares(y, tx):
     loss = compute_loss_mse(y, tx, w)
     return w, loss
 
+"""performs ridge regression using normal equations"""
 def ridge_regression(y, tx, lambda_):
     """
     Ridge regression using normal equations
@@ -93,6 +84,7 @@ def ridge_regression(y, tx, lambda_):
     loss = compute_loss_mse(y, tx, w)
     return w, loss
 
+"""performs Logistic Regression using Gradient Descent"""
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
     """
     Logistic Regression using Gradient Descent
@@ -116,6 +108,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
         
     return w, negative_likelihood_loss(y, tx, w)
 
+"""performs Regularized Logistic Regression using Gradient Descent"""
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     """
     Regularized Logistic Regression using Gradient Descent 
