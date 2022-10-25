@@ -28,8 +28,7 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
         w = w - gamma*grad
         ws.append(w)
         losses.append(loss)
-        print("GD iter. {bi}/{ti}: loss={l}".format(
-              bi=n_iter, ti=max_iters - 1, l=loss))  
+        #print("GD iter. {bi}/{ti}: loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))  
     return ws[-1], losses[-1]
 
 """performs stochastic gradient descent"""
@@ -57,8 +56,7 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
             ws.append(w)
             losses.append(loss)
             
-        print("SGD iter. {bi}/{ti}: loss={l}".format(
-                bi=n_iter, ti=max_iters - 1, l=loss))        
+        #print("SGD iter. {bi}/{ti}: loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))        
     return ws[-1], losses[-1]
 
 """performs least squares using normal equations"""
