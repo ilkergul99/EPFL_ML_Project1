@@ -4,7 +4,7 @@ from data_preprocessing import *
 from helper_functions_project1 import *
 from implementations import *
 
-def build_k_indices(y, k_fold, seed): # TODO: not tested these they probably not work yet, adding as a guide
+def build_k_indices(y, k_fold, seed): 
     """build k indices for k-fold.
     
     Args:
@@ -44,7 +44,7 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
     tr_x, te_x = apply_preprocessing(tr_x, te_x, degree=degree)
     
     w, _ = ridge_regression(tr_y.reshape(-1), tr_x, lambda_)
-    #w, _ = logistic_regression(tr_y.reshape(-1), tr_x, np.zeros([tr_x.shape[1],1]), 10000, 0.001) # TODO: use cross validation for all implementations
+    #w, _ = logistic_regression(tr_y.reshape(-1), tr_x, np.zeros([tr_x.shape[1],1]), 10000, 0.001) 
     #w, _ = least_squares_SGD(tr_y.reshape(-1), tr_x, np.zeros([tr_x.shape[1],1]), 1, 10, 0.0001)
     #w, _ = least_squares(tr_y.reshape(-1), tr_x)
     preds_tr = tr_x.dot(w)
