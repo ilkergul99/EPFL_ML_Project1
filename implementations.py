@@ -16,8 +16,8 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
         ws[-1]: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of GD 
     """
     ws = [initial_w]
-    losses = []
     w = initial_w
+    losses = [compute_loss_mse(y,tx,w)]
     
     for n_iter in range(max_iters):
         #compute loss and gradient
