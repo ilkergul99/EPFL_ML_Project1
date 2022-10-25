@@ -33,12 +33,24 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     return ws[-1], losses[-1]
 
 """performs stochastic gradient descent"""
-def mean_squared_error_sgd(y, tx, initial_w, batch_size, max_iters, gamma):
+def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
+    """The Gradient Descent (GD) algorithm. 
+    Args:
+        y: Given labels of data = (N,)
+        tx: Features of the data = (N,D)
+        initial_w: numpy array of shape=(D, ). The initial guess (or the initialization) for the model parameters
+        max_iters: a scalar denoting the total number of iterations of GD
+        gamma: a scalar denoting the stepsize
+        
+    Returns:
+        loss[-1]: a list of length max_iters containing the loss value (scalar) for each iteration of GD
+        ws[-1]: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of GD 
+    """
     ws = [initial_w]
     losses = []
     w = initial_w
     for n_iter in range(max_iters):
-        for yn,txn in batch_iter(y,tx,batch_size,1):
+        for yn,txn in batch_iter(y,tx,1,1):
             grad, e = compute_stoch_gradient(yn, txn, w)
             w = w - gamma*grad
             loss = compute_mse(e)
