@@ -95,7 +95,7 @@ def negative_likelihood_loss(y, tx, w):
 
 def reg_negative_likelihood_grad(y, tx, w, lambda_):
     """returns grad with regularization term for l2"""
-    return np.dot(tx.T, sigmoid(np.dot(tx, w)) - y) + 2 * lambda_ * w
+    return np.dot(tx.T, sigmoid(np.dot(tx, w)) - y)/y.shape[0] + lambda_ * w
 
 def sigmoid(t):
     """apply the sigmoid function on t"""
