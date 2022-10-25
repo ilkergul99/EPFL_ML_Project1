@@ -75,7 +75,7 @@ def build_poly(x, degree, columns=[]):
         res.append(np.power(np.tile(x.T[cind, :].reshape((-1,1)), degree -1), p))
     return np.concatenate(res, axis=1)
     
-def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.5, degree=1):
+def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.0, degree=1):
     """
     applies the preproceesing functions in this file 
     Args:

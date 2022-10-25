@@ -2,7 +2,7 @@ import numpy as np
 from helper_functions_project1 import *
 
 """performs gradient descent"""
-def least_squares_GD(y, tx, initial_w, max_iters, gamma):
+def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
     """The Gradient Descent (GD) algorithm. 
     Args:
         y: Given labels of data = (N,)
@@ -33,7 +33,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     return ws[-1], losses[-1]
 
 """performs stochastic gradient descent"""
-def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
+def mean_squared_error_sgd(y, tx, initial_w, batch_size, max_iters, gamma):
     ws = [initial_w]
     losses = []
     w = initial_w
