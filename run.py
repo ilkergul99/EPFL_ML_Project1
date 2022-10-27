@@ -60,7 +60,7 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
     acc_te = np.sum(preds_te == te_y) / len(te_y)
     return loss_tr, loss_te, acc_tr, acc_te
     
-def best_degree_selection(train_x, train_y, degrees, k_fold, lambdas, seed = 1):
+def best_degree_selection(train_x, train_y, degrees, k_fold, lambdas, seed = 1, verbose=False):
     """cross validation over regularisation parameter lambda and degree.
     
     Args:
@@ -70,9 +70,6 @@ def best_degree_selection(train_x, train_y, degrees, k_fold, lambdas, seed = 1):
     Returns:
         best_params : parameters that result in the best rmse
         best_rmse : value of the rmse for the couple (best_degree, best_lambda)
-        
-    >>> best_degree_selection(np.arange(2,11), 4, np.logspace(-4, 0, 30))
-    (7, 0.004520353656360241, 0.28957280566456634)
     """
     
     # split data in k fold
@@ -97,12 +94,82 @@ def best_degree_selection(train_x, train_y, degrees, k_fold, lambdas, seed = 1):
             acc_tr.append(atr/k_fold)
             acc_te.append(ate/k_fold)
             pairs.append((lambda_, degree))
-            print("For lambda: {} and degree:{}, rmse_tr:{}, rmse_te:{}, acc_tr:{}, acc_te:{}".format(lambda_, degree, rmse_tr[-1], rmse_te[-1], acc_tr[-1], acc_te[-1]))
+            if verbose:
+                print("For lambda: {} and degree:{}, rmse_tr:{}, rmse_te:{}, acc_tr:{}, acc_te:{}".format(lambda_, degree, rmse_tr[-1], rmse_te[-1], acc_tr[-1], acc_te[-1]))
 
     best_params = pairs[np.argmin(rmse_te)]
     best_rmse = rmse_te[np.argmin(rmse_te)]
     acc_for_best_rmse = acc_te[np.argmin(rmse_te)]
-    print("overall time passed: {}".format(time.time()-starting_time))
+    if verbose:
+        print("overall time passed: {}".format(time.time()-starting_time))
     return best_params, best_rmse, acc_for_best_rmse
 
+def cross_validation_on_jets(data_path, degrees, k_fold, lambdas, seed = 1, verbose=False):
+    """cross validation over regularisation parameter lambda and degree.
+    
+    Args:
+        degrees: shape = (d,), where d is the number of degrees to test 
+        k_fold: integer, the number of folds
+        lambdas: shape = (p, ) where p is the number of values of lambda to test
+    Returns:
+        best_params : parameters that result in the best rmse
+        best_rmse : value of the rmse for the couple (best_degree, best_lambda)
+    """
+    train_y, train_x, train_ids = load_csv_data(data_path + "/train.csv")
+    results = []
+    for i in range(4):
+        # compute jet data
+        tr_x_jet = train_x[np.where(train_x[:,22] == i)]
+        tr_y_jet = train_y[np.where(train_x[:,22] == i)]
+        
+        res = best_degree_selection(tr_x_jet, tr_y_jet, degrees, k_fold, lambdas, seed, verbose)
+        results.append(res)
+        if verbose:
+            print(res)
+    print("Average accuracy: ", sum([res[2] for res in results]) / 4)
+    print("Average loss: ", sum([res[1] for res in results]) / 4)
+    for res in results:
+        print(res[0])
+    return results
 
+def main(data_path, submission_name):
+    """
+    Runs the training and saves the file for our best results.
+    Args:
+        data_path: string, folder that contains the train and test data
+    """
+    # read the datasets
+    train_y, train_x, train_ids = load_csv_data(data_path + "/train.csv")
+    test_y, test_x, test_ids = load_csv_data(data_path + "/test.csv")
+    pred_final = np.zeros(test_y.shape)
+    
+    degrees = [6, 8, 8, 7]
+    lambdas = [1e-3, 1e-3, 1e-7, 1e-7]
+    
+    for i in range(4):
+        # compute jet data
+        tr_x_jet = train_x[np.where(train_x[:,22] == i)]
+        tr_y_jet = train_y[np.where(train_x[:,22] == i)]
+        te_x_jet = test_x[np.where(test_x[:,22] == i)]
+        # preprocessing
+        tr_x_jet, te_x_jet = apply_preprocessing(tr_x_jet, te_x_jet, degree=degrees[i])
+        # training
+        w, _ = ridge_regression(tr_y_jet.reshape(-1), tr_x_jet, lambdas[i])
+        # prediction
+        preds_jet = te_x_jet.dot(w)
+        preds_jet[preds_jet < 0] = -1
+        preds_jet[preds_jet >= 0] = 1
+        pred_final[np.where(test_x[:,22] == i)] = preds_jet
+    
+    create_csv_submission(test_ids, pred_final, submission_name)
+        
+        
+    
+        
+if __name__ == "__main__":
+    main("ml_project_dataset", "submission.csv")
+    
+    
+    
+        
+    
