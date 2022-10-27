@@ -61,11 +61,11 @@ def build_poly(x, degree, columns=[]):
     """polynomial basis functions for input data x, for j=0 up to j=degree.
     
     Args:
-        x: numpy array of shape (N,), N is the number of samples.
+        x: numpy array of shape (N,D), N is the number of samples.
         degree: integer.
         
     Returns:
-        poly: numpy array of shape (N,d+1)
+        poly: numpy array of shape (N,D*(d+1))
     """
     if columns == []:
         columns = np.arange(x.shape[1])
@@ -74,8 +74,39 @@ def build_poly(x, degree, columns=[]):
     for cind in columns:
         res.append(np.power(np.tile(x.T[cind, :].reshape((-1,1)), degree -1), p))
     return np.concatenate(res, axis=1)
+
+def add_log(x, columns=[]):
+    """add the logarithm value of the columns
     
-def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.0, degree=1):
+    Args:
+        x: numpy array of shape (N,D), N is the number of samples.
+        
+    Returns:
+        poly: numpy array of shape (N,D+len(columns))
+    """
+    if columns == []:
+        columns = np.arange(x.shape[1])
+    col_data = x[:, columns].copy()
+    col_data[col_data <= 0] = 1
+    res = [x, np.log(col_data)]
+    return np.concatenate(res, axis=1)
+
+def add_sqrt(x, columns=[]):
+    """add the logarithm value of the columns
+    
+    Args:
+        x: numpy array of shape (N,D), N is the number of samples.
+        
+    Returns:
+        poly: numpy array of shape (N,D+len(columns))
+    """
+    if columns == []:
+        columns = np.arange(x.shape[1])
+    col_data = np.abs(x[:, columns].copy())
+    res = [x, np.sqrt(col_data)]
+    return np.concatenate(res, axis=1)
+    
+def apply_preprocessing(tr_x, te_x, corr_tol=0, outlier_coef=2.0, degree=1, apply_log=True):
     """
     applies the preproceesing functions in this file 
     Args:
@@ -92,21 +123,26 @@ def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.0, degree=1):
     for i in range(tr_x.shape[1]):
         if len(np.unique(tr_x[:,i])) == 1:
             unnecessary_columns.append(i)
-    print("unnecessary columns are: ", unnecessary_columns)
+    
     tr_x = np.delete(tr_x, unnecessary_columns, axis=1)
     te_x = np.delete(te_x, unnecessary_columns, axis=1)
     tr_x = handle_missing_and_outliers(tr_x, outlier_coef)
     te_x = handle_missing_and_outliers(te_x, outlier_coef)
+    tr_x_original_length = tr_x.shape[1]
+    te_x_original_length = te_x.shape[1]
     
     if corr_tol > 0:
         tr_x, te_x = remove_correlated_cols(tr_x, te_x, corr_tol)
     
-    tr_x = column_standardize(tr_x)[0]
-    te_x = column_standardize(te_x)[0]
-    
     if degree > 1:
         tr_x = build_poly(tr_x, degree)
         te_x = build_poly(te_x, degree)
+    if apply_log:
+        tr_x = add_log(tr_x, np.arange(tr_x_original_length))
+        te_x = add_log(te_x, np.arange(te_x_original_length))
+    tr_x = column_standardize(tr_x)[0]
+    te_x = column_standardize(te_x)[0]
+    
     tr_x = np.c_[np.ones(tr_x.shape[0]), tr_x]
     te_x = np.c_[np.ones(te_x.shape[0]), te_x]
     return tr_x, te_x
