@@ -5,6 +5,7 @@ from helper_functions_project1 import *
 from implementations import *
 
 JETS_LOG_INDICES = [[0, 2, 3, 8, 9, 10, 11, 13, 16, 19, 21], [0, 1, 2, 3, 8, 9, 10, 13, 16, 19, 21, 23, 29], [0, 1, 2, 3, 5, 8, 9, 10, 13, 16, 19, 21, 23, 26, 29], [0, 1, 2, 3, 5, 8, 9, 10, 13, 16, 19, 21, 23, 26, 29]]
+
 def build_k_indices(y, k_fold, seed): 
     """build k indices for k-fold.
     

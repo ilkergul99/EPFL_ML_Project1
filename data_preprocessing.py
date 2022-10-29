@@ -120,12 +120,10 @@ def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.0, degree=1, l
     te_x = np.delete(te_x, unnecessary_columns, axis=1)
     tr_x = handle_missing_and_outliers(tr_x, outlier_coef)
     te_x = handle_missing_and_outliers(te_x, outlier_coef)
-    
-    if corr_tol > 0:
-        tr_x, te_x = remove_correlated_cols(tr_x, te_x, corr_tol)
-    
+       
     tr_x = column_standardize(tr_x)[0]
     te_x = column_standardize(te_x)[0]
+    
     
     if degree > 1:
         tr_x = build_poly(tr_x, degree)
