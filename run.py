@@ -4,6 +4,8 @@ from data_preprocessing import *
 from helper_functions_project1 import *
 from implementations import *
 
+JETS_LOG_INDICES = [[0, 2, 3, 8, 9, 10, 11, 13, 16, 19, 21], [0, 1, 2, 3, 8, 9, 10, 13, 16, 19, 21, 23, 29], [0, 1, 2, 3, 5, 8, 9, 10, 13, 16, 19, 21, 23, 26, 29], [0, 1, 2, 3, 5, 8, 9, 10, 13, 16, 19, 21, 23, 26, 29]]
+
 def build_k_indices(y, k_fold, seed): 
     """build k indices for k-fold.
     
@@ -22,7 +24,7 @@ def build_k_indices(y, k_fold, seed):
     k_indices = [indices[k * interval: (k + 1) * interval] for k in range(k_fold)]
     return np.array(k_indices)
 
-def cross_validation(y, x, k_indices, k, lambda_, degree):
+def cross_validation(y, x, k_indices, k, lambda_, degree, index):
     """return the loss of ridge regression for a fold corresponding to k_indices
     
     Args:
@@ -41,7 +43,7 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
 
     te_x, te_y = x[k_indices[k]], y[k_indices[k]]
     tr_x, tr_y = x[k_indices[(np.arange(len(k_indices))!=k)].reshape(-1)], y[k_indices[(np.arange(len(k_indices))!=k)].reshape(-1)]
-    tr_x, te_x = apply_preprocessing(tr_x, te_x, degree=degree)
+    tr_x, te_x = apply_preprocessing(tr_x.copy(), te_x.copy(), degree=degree, log_cols=JETS_LOG_INDICES[index])
     
     w, _ = ridge_regression(tr_y.reshape(-1), tr_x, lambda_)
     #w, _ = logistic_regression(tr_y.reshape(-1), tr_x, np.zeros([tr_x.shape[1],1]), 10000, 0.001) 
@@ -60,7 +62,7 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
     acc_te = np.sum(preds_te == te_y) / len(te_y)
     return loss_tr, loss_te, acc_tr, acc_te
     
-def best_degree_selection(train_x, train_y, degrees, k_fold, lambdas, seed = 1, verbose=False):
+def best_degree_selection(train_x, train_y, degrees, k_fold, lambdas, index, seed = 1, verbose=False):
     """cross validation over regularisation parameter lambda and degree.
     
     Args:
@@ -84,7 +86,7 @@ def best_degree_selection(train_x, train_y, degrees, k_fold, lambdas, seed = 1, 
         for lambda_ in lambdas:
             trl, tel, atr, ate = 0, 0, 0, 0
             for k in range(k_fold):
-                trlu, telu, atru, ateu = cross_validation(train_y, train_x, k_indices, k, lambda_, degree)
+                trlu, telu, atru, ateu = cross_validation(train_y, train_x, k_indices, k, lambda_, degree, index)
                 trl += trlu
                 tel += telu
                 atr += atru
@@ -117,16 +119,18 @@ def cross_validation_on_jets(data_path, degrees, k_fold, lambdas, seed = 1, verb
     """
     train_y, train_x, train_ids = load_csv_data(data_path + "/train.csv")
     results = []
+    cumulative_acc = 0
     for i in range(4):
         # compute jet data
         tr_x_jet = train_x[np.where(train_x[:,22] == i)]
         tr_y_jet = train_y[np.where(train_x[:,22] == i)]
         
-        res = best_degree_selection(tr_x_jet, tr_y_jet, degrees, k_fold, lambdas, seed, verbose)
+        res = best_degree_selection(tr_x_jet, tr_y_jet, degrees, k_fold, lambdas, i, seed, verbose)
         results.append(res)
         if verbose:
             print(res)
-    print("Average accuracy: ", sum([res[2] for res in results]) / 4)
+        cumulative_acc += tr_y_jet.shape[0] * res[2]
+    print("Average accuracy: ", cumulative_acc / train_y.shape)
     print("Average loss: ", sum([res[1] for res in results]) / 4)
     for res in results:
         print(res[0])
@@ -139,6 +143,7 @@ def main(data_path, submission_name):
         data_path: string, folder that contains the train and test data
     """
     # read the datasets
+    np.random.seed(353)
     train_y, train_x, train_ids = load_csv_data(data_path + "/train.csv")
     test_y, test_x, test_ids = load_csv_data(data_path + "/test.csv")
     pred_final = np.zeros(test_y.shape)
@@ -152,7 +157,7 @@ def main(data_path, submission_name):
         tr_y_jet = train_y[np.where(train_x[:,22] == i)]
         te_x_jet = test_x[np.where(test_x[:,22] == i)]
         # preprocessing
-        tr_x_jet, te_x_jet = apply_preprocessing(tr_x_jet, te_x_jet, degree=degrees[i])
+        tr_x_jet, te_x_jet = apply_preprocessing(tr_x_jet, te_x_jet, degree=degrees[i], log_cols=JETS_LOG_INDICES[i])
         # training
         w, _ = ridge_regression(tr_y_jet.reshape(-1), tr_x_jet, lambdas[i])
         # prediction
