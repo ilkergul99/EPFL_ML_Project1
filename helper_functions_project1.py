@@ -141,3 +141,31 @@ def create_csv_submission(ids, y_pred, name):
         writer.writeheader()
         for r1, r2 in zip(ids, y_pred):
             writer.writerow({"Id": int(r1), "Prediction": int(r2)})
+            
+def reg_logistic_regression_sgd(y, tx, lambda_, initial_w, max_iters, gamma):
+    """The Gradient Descent (GD) algorithm. 
+    Args:
+        y: Given labels of data = (N,)
+        tx: Features of the data = (N,D)
+        initial_w: numpy array of shape=(D, ). The initial guess (or the initialization) for the model parameters
+        max_iters: a scalar denoting the total number of iterations of GD
+        gamma: a scalar denoting the stepsize
+        
+    Returns:
+        loss[-1]: a list of length max_iters containing the loss value (scalar) for each iteration of GD
+        ws[-1]: a list of length max_iters containing the model parameters as numpy arrays of shape (D, ), for each iteration of GD 
+    """
+    w = initial_w.copy()
+    losses = [compute_loss_mse(y,tx,w)]
+    for n_iter in range(max_iters):
+        for yn,txn in batch_iter(y,tx,512,1):
+            # compute the gradient
+            grad = reg_negative_likelihood_grad(yn, txn, w, lambda_)
+            # update weights
+            w = w - gamma * grad
+            loss = negative_likelihood_loss(yn, txn, w)
+            losses.append(loss)
+        if n_iter % 100 ==0:
+            print("SGD iter. {bi}/{ti}: loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))        
+    return w, losses
+
