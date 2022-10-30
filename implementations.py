@@ -114,8 +114,6 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
         grad = negative_likelihood_grad(y, tx, w)
         # update weights
         w = w - gamma * grad
-        if i % 100 == 0:
-            print(i, ", " ,negative_likelihood_loss(y, tx, w))
         
     return w, negative_likelihood_loss(y, tx, w)
 
