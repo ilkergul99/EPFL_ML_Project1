@@ -2,6 +2,8 @@ import numpy as np
 import csv
 
 """the copy of the function in helpers.py, should we change this?"""
+
+
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     """
     Generate a minibatch iterator for a dataset.
@@ -26,6 +28,7 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
         if start_index != end_index:
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
+
 def compute_loss_mse(y, tx, w):
 
     """Calculate the loss using either MSE or MAE.
@@ -37,7 +40,8 @@ def compute_loss_mse(y, tx, w):
         the value of the loss (a scalar), corresponding to the input parameters w.
     """
     error = y - tx.dot(w)
-    return np.mean(error ** 2)/2
+    return np.mean(error**2) / 2
+
 
 def compute_loss_mae(y, tx, w):
 
@@ -50,22 +54,29 @@ def compute_loss_mae(y, tx, w):
         the value of the loss (a scalar), corresponding to the input parameters w.
     """
     error = y - tx.dot(w)
-    return np.mean(np.absolute(error))/2
+    return np.mean(np.absolute(error)) / 2
+
 
 """returns the mean squared error"""
+
+
 def compute_mse(e):
     sq = np.square(e)
-    error = 0.5*np.mean(sq)
+    error = 0.5 * np.mean(sq)
     return error
 
+
 """returns the gradient for sgd, same as the previous function"""
+
+
 def compute_stoch_gradient(y, tx, w):
-    e = y - np.dot(tx,w)
-    g = -np.dot(tx.T,e)/(len(y))
-    return g,e
+    e = y - np.dot(tx, w)
+    g = -np.dot(tx.T, e) / (len(y))
+    return g, e
+
 
 def compute_gradient(y, tx, w):
-    """Computes the gradient at w.  
+    """Computes the gradient at w.
     Args:
         y: Given labels of data = (N,)
         tx: Features of the data = (N,D)
@@ -74,32 +85,42 @@ def compute_gradient(y, tx, w):
         An numpy array of shape (2, ) (same shape as w), containing the gradient of the loss at w.
     """
     error = y - tx.dot(w)
-    return -tx.T.dot(error)/error.size
+    return -tx.T.dot(error) / error.size
+
 
 def load_data(path):
-    #alternative read at once and then split into x and y
-    X = np.genfromtxt(
-    path, delimiter=",", skip_header=1, usecols=range(2,32))
+    # alternative read at once and then split into x and y
+    X = np.genfromtxt(path, delimiter=",", skip_header=1, usecols=range(2, 32))
     Y = np.genfromtxt(
-    path, delimiter=",", skip_header=1, converters={1: lambda x: 0 if b's' in x else 1}, usecols=[1])
-    return X,Y
+        path,
+        delimiter=",",
+        skip_header=1,
+        converters={1: lambda x: 0 if b"s" in x else 1},
+        usecols=[1],
+    )
+    return X, Y
+
 
 def negative_likelihood_grad(y, tx, w):
     """returns grad"""
-    return np.dot(tx.T, sigmoid(np.dot(tx, w)) - y) /y.shape[0] 
+    return np.dot(tx.T, sigmoid(np.dot(tx, w)) - y) / y.shape[0]
+
 
 def negative_likelihood_loss(y, tx, w):
     """returns loss"""
     t = np.dot(tx, w)
-    return np.sum(np.log(1 + np.exp(t)) - y * t)/y.shape[0]  
+    return np.sum(np.log(1 + np.exp(t)) - y * t) / y.shape[0]
+
 
 def reg_negative_likelihood_grad(y, tx, w, lambda_):
     """returns grad with regularization term for l2"""
-    return np.dot(tx.T, sigmoid(np.dot(tx, w)) - y)/y.shape[0] + 2 * lambda_ * w
+    return np.dot(tx.T, sigmoid(np.dot(tx, w)) - y) / y.shape[0] + 2 * lambda_ * w
+
 
 def sigmoid(t):
     """apply the sigmoid function on t"""
     return 1 / (1 + np.exp(-t))
+
 
 def standardize(x):
     """Standardize the original data set."""
@@ -108,6 +129,7 @@ def standardize(x):
     std_x = np.std(x)
     x = x / std_x
     return x, mean_x, std_x
+
 
 def load_csv_data(data_path, sub_sample=False):
     """Loads data and returns y (class labels), tX (features) and ids (event ids)"""
@@ -128,6 +150,7 @@ def load_csv_data(data_path, sub_sample=False):
 
     return yb, input_data, ids
 
+
 def create_csv_submission(ids, y_pred, name):
     """
     Creates an output file in .csv format for submission to Kaggle or AIcrowd
@@ -141,7 +164,8 @@ def create_csv_submission(ids, y_pred, name):
         writer.writeheader()
         for r1, r2 in zip(ids, y_pred):
             writer.writerow({"Id": int(r1), "Prediction": int(r2)})
-            
+
+
 def reg_logistic_regression_sgd(y, tx, lambda_, initial_w, max_iters, gamma):
     """The regularized logistic regression algorithm using sgd
     Args:
@@ -151,24 +175,29 @@ def reg_logistic_regression_sgd(y, tx, lambda_, initial_w, max_iters, gamma):
         initial_w: numpy array of shape=(D, ). The initial guess (or the initialization) for the model parameters
         max_iters: a scalar denoting the total number of iterations of GD
         gamma: a scalar denoting the stepsize
-        
+
     Returns:
         w: optimized weight vector for the model
-        loss: optimized final loss based on logistic loss iteration of GD 
+        loss: optimized final loss based on logistic loss iteration of GD
     """
     w = initial_w.copy()
-    losses = [compute_loss_mse(y,tx,w)]
+    losses = [compute_loss_mse(y, tx, w)]
     for n_iter in range(max_iters):
-        for yn,txn in batch_iter(y,tx,128,1):
+        for yn, txn in batch_iter(y, tx, 128, 1):
             # compute the gradient
             grad = reg_negative_likelihood_grad(yn, txn, w, lambda_)
             # update weights
             w = w - gamma * grad
             loss = negative_likelihood_loss(yn, txn, w)
             losses.append(loss)
-        if n_iter % 100 ==0:
-            print("SGD iter. {bi}/{ti}: loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))        
+        if n_iter % 100 == 0:
+            print(
+                "SGD iter. {bi}/{ti}: loss={l}".format(
+                    bi=n_iter, ti=max_iters - 1, l=loss
+                )
+            )
     return w, losses
+
 
 def logistic_regression_sgd(y, tx, initial_w, max_iters, gamma):
     """
@@ -178,22 +207,25 @@ def logistic_regression_sgd(y, tx, initial_w, max_iters, gamma):
         tx: Features of the data = (N,D)
         initial_w: numpy array of shape=(D, ). The initial guess (or the initialization) for the model parameters
         max_iters: number of steps to run
-        gamma: a scalar denoting the total number of iterations 
+        gamma: a scalar denoting the total number of iterations
     Returns:
         w: optimized weight vector for the model
         loss: optimized final loss based on logistic loss
     """
     w = initial_w.copy()
-    losses = [compute_loss_mse(y,tx,w)]
+    losses = [compute_loss_mse(y, tx, w)]
     for i in range(max_iters):
-        for yn,txn in batch_iter(y,tx,128,1):
+        for yn, txn in batch_iter(y, tx, 128, 1):
             grad = negative_likelihood_grad(y, tx, w)
             # update weights
             w = w - gamma * grad
             loss = negative_likelihood_loss(yn, txn, w)
             losses.append(loss)
-        if n_iter % 100 ==0:
-            print("SGD iter. {bi}/{ti}: loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))       
-        
-    return w, losses
+        if n_iter % 100 == 0:
+            print(
+                "SGD iter. {bi}/{ti}: loss={l}".format(
+                    bi=n_iter, ti=max_iters - 1, l=loss
+                )
+            )
 
+    return w, losses
