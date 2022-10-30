@@ -90,7 +90,7 @@ def best_degree_selection(
         index: integer, index of the jet (jet number)
         seed: the random seed
         verbose: increases the printed info volume
-        
+
     Returns:
         best_params : parameters that result in the best rmse
         best_rmse : value of the rmse for the couple (best_degree, best_lambda)
