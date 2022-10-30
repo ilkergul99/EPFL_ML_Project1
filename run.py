@@ -77,31 +77,31 @@ def best_degree_selection(train_x, train_y, degrees, k_fold, lambdas, index, see
     # split data in k fold
     k_indices = build_k_indices(train_y, k_fold, seed)
     starting_time = time.time()
-    rmse_tr = []
-    rmse_te = []
-    acc_tr = []
-    acc_te = []
+    rmse_tr = np.zeros((len(degrees)*len(lambdas), 2))
+    rmse_te = np.zeros((len(degrees)*len(lambdas), 2))
+    acc_tr = np.zeros((len(degrees)*len(lambdas), 2))
+    acc_te = np.zeros((len(degrees)*len(lambdas), 2))
     pairs = []
-    for degree in degrees:
-        for lambda_ in lambdas:
-            trl, tel, atr, ate = 0, 0, 0, 0
+    for i, degree in enumerate(degrees):
+        for j, lambda_ in enumerate(lambdas):
+            trl, tel, atr, ate = np.zeros(k_fold), np.zeros(k_fold), np.zeros(k_fold), np.zeros(k_fold)
             for k in range(k_fold):
                 trlu, telu, atru, ateu = cross_validation(train_y, train_x, k_indices, k, lambda_, degree, index)
-                trl += trlu
-                tel += telu
-                atr += atru
-                ate += ateu
-            rmse_tr.append(trl/k_fold)
-            rmse_te.append(tel/k_fold)
-            acc_tr.append(atr/k_fold)
-            acc_te.append(ate/k_fold)
+                trl[k] = trlu
+                tel[k] = telu
+                atr[k] = atru
+                ate[k] = ateu
+            rmse_tr[i*len(lambdas)+j] = np.array([np.mean(trl), np.std(trl)])
+            rmse_te[i*len(lambdas)+j] = np.array([np.mean(tel), np.std(tel)])
+            acc_tr[i*len(lambdas)+j] = np.array([np.mean(atr), np.std(atr)])
+            acc_te[i*len(lambdas)+j] = np.array([np.mean(ate), np.std(ate)])
             pairs.append((lambda_, degree))
             if verbose:
-                print("For lambda: {} and degree:{}, rmse_tr:{}, rmse_te:{}, acc_tr:{}, acc_te:{}".format(lambda_, degree, rmse_tr[-1], rmse_te[-1], acc_tr[-1], acc_te[-1]))
+                print("For lambda: {} and degree:{}, rmse_tr:{}, rmse_te:{}, acc_tr:{}, acc_te:{}".format(lambda_, degree, rmse_tr[i*len(lambdas)+j], rmse_te[i*len(lambdas)+j], acc_tr[i*len(lambdas)+j], acc_te[i*len(lambdas)+j]))
 
-    best_params = pairs[np.argmin(rmse_te)]
-    best_rmse = rmse_te[np.argmin(rmse_te)]
-    acc_for_best_rmse = acc_te[np.argmin(rmse_te)]
+    best_params = pairs[np.argmin(rmse_te[:, 0])]
+    best_rmse = rmse_te[np.argmin(rmse_te[:, 0])]
+    acc_for_best_rmse = acc_te[np.argmin(rmse_te[:, 0])]
     if verbose:
         print("overall time passed: {}".format(time.time()-starting_time))
     return best_params, best_rmse, acc_for_best_rmse
@@ -120,6 +120,7 @@ def cross_validation_on_jets(data_path, degrees, k_fold, lambdas, seed = 1, verb
     train_y, train_x, train_ids = load_csv_data(data_path + "/train.csv")
     results = []
     cumulative_acc = 0
+    cumulative_acc_std = 0
     for i in range(4):
         # compute jet data
         tr_x_jet = train_x[np.where(train_x[:,22] == i)]
@@ -129,8 +130,10 @@ def cross_validation_on_jets(data_path, degrees, k_fold, lambdas, seed = 1, verb
         results.append(res)
         if verbose:
             print(res)
-        cumulative_acc += tr_y_jet.shape[0] * res[2]
+        cumulative_acc += tr_y_jet.shape[0] * res[2][0]
+        cumulative_acc_std += res[2][1]
     print("Average accuracy: ", cumulative_acc / train_y.shape)
+    print("Average accuracy std: ", cumulative_acc_std / 4)
     print("Average loss: ", sum([res[1] for res in results]) / 4)
     for res in results:
         print(res[0])

@@ -112,7 +112,6 @@ def apply_preprocessing(tr_x, te_x, corr_tol=0.01, outlier_coef=2.0, degree=1, l
     for i in range(tr_x.shape[1]):
         if len(np.unique(tr_x[:,i])) == 1:
             unnecessary_columns.append(i)
-    print("unnecessary columns are: ", unnecessary_columns)
     if log_cols != []:
         tr_x = add_log(tr_x, log_cols)
         te_x = add_log(te_x, log_cols)
