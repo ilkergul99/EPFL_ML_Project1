@@ -41,6 +41,7 @@ def cross_validation(y, x, k_indices, k, lambda_, degree, index):
         k:          scalar, the k-th fold (N.B.: not to confused with k_fold which is the fold nums)
         lambda_:    scalar, cf. ridge_regression()
         degree:     scalar, cf. build_poly()
+        index:      index of the jet (jet number)
 
     Returns:
         train and test root mean square errors rmse = sqrt(2 mse)
@@ -81,12 +82,19 @@ def best_degree_selection(
     """cross validation over regularisation parameter lambda and degree.
 
     Args:
+        train_x: shape = (N, d), train features, N is the number of samples, d is the dimension
+        train_y: shape = (N,), train ground truth, N is the number of samples
         degrees: shape = (d,), where d is the number of degrees to test
         k_fold: integer, the number of folds
         lambdas: shape = (p, ) where p is the number of values of lambda to test
+        index: integer, index of the jet (jet number)
+        seed: the random seed
+        verbose: increases the printed info volume
+        
     Returns:
         best_params : parameters that result in the best rmse
         best_rmse : value of the rmse for the couple (best_degree, best_lambda)
+        acc_for_best_rmse : accuracy for the degrees which results in the lowest loss
     """
 
     # split data in k fold
@@ -144,12 +152,14 @@ def cross_validation_on_jets(
     """cross validation over regularisation parameter lambda and degree.
 
     Args:
+        data_path: path to the folder containing the data to be used for cross validation
         degrees: shape = (d,), where d is the number of degrees to test
         k_fold: integer, the number of folds
         lambdas: shape = (p, ) where p is the number of values of lambda to test
+        seed: the random seed
+        verbose: increases the printed info volume
     Returns:
-        best_params : parameters that result in the best rmse
-        best_rmse : value of the rmse for the couple (best_degree, best_lambda)
+        results : a list of length 4 containing for each jet (best_params, best_rmse, acc_for_best_rmse)
     """
     train_y, train_x, train_ids = load_csv_data(data_path + "/train.csv")
     results = []
@@ -181,6 +191,7 @@ def main(data_path, submission_name):
     Runs the training and saves the file for our best results.
     Args:
         data_path: string, folder that contains the train and test data
+        submission_name: string, name of the string to be used for submission
     """
     # read the datasets
     np.random.seed(353)
